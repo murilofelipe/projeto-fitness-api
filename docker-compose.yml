@@ -1,6 +1,4 @@
-# /docker-compose.yml
-
-version: '3.8'
+# /docker-compose.yml (Versão Simplificada e Corrigida)
 
 services:
   # Serviço do Banco de Dados PostgreSQL
@@ -20,12 +18,17 @@ services:
   # Serviço da API Backend (Python/FastAPI)
   backend:
     container_name: fitness_api
-    build: ./backend
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    build:
+      context: ./backend
+    # O comando agora é definido apenas no Dockerfile para maior clareza
     volumes:
-      - ./backend:/app
+      - ./backend:/code
     ports:
       - "8000:8000"
+    # --- ADICIONE ESTA LINHA PARA FORÇAR A EXECUÇÃO COMO ROOT ---
+    user: "root"
+    # -----------------------------------------------------------
+
     environment:
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/fitness_db
     depends_on:
