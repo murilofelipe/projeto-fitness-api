@@ -23,7 +23,6 @@ from .database import Base
 
 # --- MODELO DE USUÁRIO COM HERANÇA E AUDITORIA DE LOGIN ---
 
-
 class Usuario(Base):
     __tablename__ = "usuarios"
 
@@ -51,7 +50,6 @@ class Usuario(Base):
     }
 
 
-# ... (O resto do arquivo, como Aluno, Profissional, etc., continua igual)
 class Aluno(Usuario):
     __tablename__ = "alunos"
     id_usuario: Mapped[int] = mapped_column(
@@ -135,7 +133,6 @@ class SerieRealizada(Base):
 
 
 # --- MODELOS OLAP (Data Warehouse) ---
-
 
 class DimAluno(Base):
     __tablename__ = "dim_aluno"
