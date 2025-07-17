@@ -1,14 +1,13 @@
 # /backend/src/models.py
 
-from datetime import date as DateType  # <-- MUDANÇA AQUI: importamos datetime
+from datetime import date as DateType
 from datetime import datetime
 from decimal import Decimal
-from typing import List  # <-- MUDANÇA AQUI: importamos List
+from typing import List
 
 from sqlalchemy import (
     DECIMAL,
     TIMESTAMP,
-    Column,
     Date,
     ForeignKey,
     Integer,
@@ -22,6 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
 # --- MODELO DE USUÁRIO COM HERANÇA E AUDITORIA DE LOGIN ---
+
 
 class Usuario(Base):
     __tablename__ = "usuarios"
@@ -133,6 +133,7 @@ class SerieRealizada(Base):
 
 
 # --- MODELOS OLAP (Data Warehouse) ---
+
 
 class DimAluno(Base):
     __tablename__ = "dim_aluno"

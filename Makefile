@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 
 # O .PHONY garante que o make execute o comando mesmo que já exista um arquivo com o mesmo nome do alvo.
-.PHONY: help up down ps logs sh-backend sh-db db-init db-seed test test-cov test-cov-html lint typecheck format format-check test-all clean
+.PHONY: help up down ps logs sh-backend sh-db db-init db-seed etl-run test test-cov test-cov-html lint typecheck format format-check test-all clean
 
 # Define um alvo padrão, que será executado se você digitar apenas "make".
 .DEFAULT_GOAL := help
@@ -55,6 +55,9 @@ db-init: ## [SETUP] Cria todas as tabelas no banco de dados a partir dos modelos
 
 db-seed: ## [SETUP] Popula o banco de dados com dados de teste através do seeder.
 	docker compose exec backend python -m scripts.seed_data
+
+etl-run: ## [ETL] Executa o pipeline completo de ETL do OLTP para o DWH.
+	docker compose exec backend python -m scripts.etl_pipeline
 
 # --- Comandos de Teste ---
 

@@ -1,3 +1,5 @@
+[Read this in English](README.en.md)
+
 # Plataforma de Engenharia de Dados para Análise de Performance e Retenção no Setor Fitness
 
 Este projeto, desenvolvido como Projeto Aplicado para o curso de Engenharia de Dados, consiste na criação de uma plataforma completa para o monitoramento de treinos de academia. A solução envolve uma API backend, um pipeline de dados ETL, um Data Warehouse para análises e uma suíte de testes automatizados, tudo orquestrado em um ambiente containerizado com Docker.
@@ -35,12 +37,12 @@ O projeto está organizado com a seguinte estrutura de pastas na sua raiz:
 |   |-- Dockerfile
 |   |-- pyproject.toml
 |   |-- requirements.txt
-|   |-- test.db
 |
 |-- .gitignore
 |-- docker-compose.yml
 |-- Makefile
 |-- README.md
+|-- README.en.md
 ```
 
 ## 🚀 Configuração do Ambiente Local
@@ -55,7 +57,7 @@ Siga estes passos para configurar e executar o projeto em uma nova máquina.
 
 1.  **Clone o repositório:**
     ```bash
-    git clone git@github.com:murilofelipe/academia.git
+    git clone git@github.com:murilofelipe/projeto-fitness.git
     cd projeto-fitness
     ```
 
@@ -92,8 +94,10 @@ O `Makefile` é o painel de controle do projeto. Use `make help` para ver todos 
 | `make db-init` | Cria as tabelas no banco de dados. |
 | `make db-seed` | Popula o banco com dados de teste. |
 | `make etl:run`| Executa o pipeline de ETL completo. |
+| `make sh-backend` | Acessa o terminal do contêiner da API. |
+| `make sh-db`| Acessa o terminal do contêiner do banco de dados. |
 
-## 🧪 Testando a Aplicação
+## 🧪 Qualidade de Código e Testes
 
 A qualidade do código é garantida por uma suíte de formatação, linting, checagem de tipos e testes.
 
@@ -121,6 +125,6 @@ Use um cliente de sua preferência (DBeaver, DataGrip, etc.) com as seguintes cr
 
 ## 🔮 Próximos Passos
 
-As próximas etapas do projeto, planejadas para as Sprints 2 e 3, incluem:
--   **Sprint 2:** Finalizar o pipeline ETL e criar endpoints analíticos que leem dados do Data Warehouse.
+-   **Sprint 1:** Concluída ✅
+-   **Sprint 2:** Concluída ✅
 -   **Sprint 3:** Desenvolver o dashboard em Vue.js para visualização dos dados e preparar a apresentação final do projeto.

@@ -10,7 +10,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # --- Estágio 2: Imagem Final ---
 FROM base AS final
-RUN addgroup --system appgroup && adduser --system --group appuser
+
+ARG UID=1000
+ARG GID=999
+
+RUN addgroup --gid ${GID} --system appgroup || true && \
+    adduser --uid ${UID} --system --ingroup appgroup --no-create-home appuser
+
 COPY --from=base /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY . .
 RUN pip install -e .

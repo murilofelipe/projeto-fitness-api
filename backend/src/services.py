@@ -40,3 +40,30 @@ def get_treinos(db: Session, skip: int = 0, limit: int = 100):
         .limit(limit)
         .all()
     )
+
+
+def get_aluno_performance(db: Session, aluno_id: int):
+    """
+    Busca os dados de performance de um aluno no Data Warehouse,
+    unindo a tabela fato com as dimensões e retornando colunas específicas.
+    """
+    query = (
+        db.query(
+            models.DimAluno.nome_aluno,
+            models.FctTreinos.id_data.label("data_treino"),
+            models.DimExercicio.nome_exercicio,
+            models.DimExercicio.grupo_muscular,
+            models.FctTreinos.total_series,
+            models.FctTreinos.total_repeticoes,
+            models.FctTreinos.maior_carga_kg,
+            models.FctTreinos.volume_total_carga,
+        )
+        .join(models.DimAluno, models.FctTreinos.id_aluno == models.DimAluno.id_aluno)
+        .join(
+            models.DimExercicio,
+            models.FctTreinos.id_exercicio == models.DimExercicio.id_exercicio,
+        )
+        .filter(models.FctTreinos.id_aluno == aluno_id)
+    )
+
+    return query.all()

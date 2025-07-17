@@ -20,15 +20,17 @@ services:
     container_name: fitness_api
     build:
       context: ./backend
-    # O comando agora é definido apenas no Dockerfile para maior clareza
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-999}
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /code/src
     volumes:
       - ./backend:/code
     ports:
       - "8000:8000"
-    # --- ADICIONE ESTA LINHA PARA FORÇAR A EXECUÇÃO COMO ROOT ---
-    user: "root"
+    # --- ESTA LINHA FORÇA A EXECUÇÃO COMO ROOT ---
+    user: "${UID:-1000}:${GID:-999}"
     # -----------------------------------------------------------
-
     environment:
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/fitness_db
     depends_on:

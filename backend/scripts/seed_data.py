@@ -7,7 +7,9 @@ from sqlalchemy import create_engine, text
 
 # --- CONFIGURAÇÃO DO BANCO ---
 # URL para acesso da sua máquina local ao contêiner Docker
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://myuser:mypassword@localhost:5432/fitness_db")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://myuser:mypassword@localhost:5432/fitness_db"
+)
 engine = create_engine(DATABASE_URL)
 
 # --- DADOS INICIAIS ---
@@ -122,7 +124,7 @@ def criar_dados_base():
         with engine.connect() as connection:
             for user in USUARIOS_INICIAIS:
                 stmt_user = text(
-                    "INSERT INTO usuarios (id_usuario, nome, email, senha_hash, data_nascimento, tipo_usuario) VALUES (:id, :nome, :email, :senha, :data_nasc, :tipo) ON CONFLICT (id_usuario) DO NOTHING;"
+                    "INSERT INTO usuarios (id_usuario, nome, email, senha_hash, data_nascimento, tipo_usuario) VALUES (:id, :nome, :email, :senha, :data_nasc, :tipo) ON CONFLICT (id_usuario) DO NOTHING;"  # noqa: E501
                 )
                 connection.execute(
                     stmt_user,
@@ -138,21 +140,21 @@ def criar_dados_base():
                 if user["tipo_usuario"] == "aluno":
                     connection.execute(
                         text(
-                            "INSERT INTO alunos (id_usuario) VALUES (:id) ON CONFLICT (id_usuario) DO NOTHING;"
+                            "INSERT INTO alunos (id_usuario) VALUES (:id) ON CONFLICT (id_usuario) DO NOTHING;"  # noqa: E501
                         ),
                         {"id": user["id_usuario"]},
                     )
                 elif user["tipo_usuario"] == "profissional":
                     connection.execute(
                         text(
-                            "INSERT INTO profissionais (id_usuario) VALUES (:id) ON CONFLICT (id_usuario) DO NOTHING;"
+                            "INSERT INTO profissionais (id_usuario) VALUES (:id) ON CONFLICT (id_usuario) DO NOTHING;"  # noqa: E501
                         ),
                         {"id": user["id_usuario"]},
                     )
 
             for id_exercicio, nome, grupo in EXERCICIOS_INICIAIS:
                 stmt_ex = text(
-                    "INSERT INTO exercicios (id_exercicio, nome_exercicio, grupo_muscular) VALUES (:id, :nome, :grupo) ON CONFLICT (id_exercicio) DO NOTHING;"
+                    "INSERT INTO exercicios (id_exercicio, nome_exercicio, grupo_muscular) VALUES (:id, :nome, :grupo) ON CONFLICT (id_exercicio) DO NOTHING;"  # noqa: E501
                 )
                 connection.execute(
                     stmt_ex, {"id": id_exercicio, "nome": nome, "grupo": grupo}
@@ -160,7 +162,7 @@ def criar_dados_base():
 
             for acomp in ACOMPANHAMENTOS_INICIAIS:
                 stmt_acomp = text(
-                    "INSERT INTO acompanhamentos (id_profissional, id_aluno, data_inicio, status) VALUES (:id_prof, :id_aluno, :data_inicio, 'ativo');"
+                    "INSERT INTO acompanhamentos (id_profissional, id_aluno, data_inicio, status) VALUES (:id_prof, :id_aluno, :data_inicio, 'ativo');"  # noqa: E501
                 )
                 connection.execute(
                     stmt_acomp,
@@ -173,7 +175,7 @@ def criar_dados_base():
 
             connection.commit()
             print(
-                "Dados de base (usuários, exercícios e acompanhamentos) inseridos com sucesso."
+                "Dados de base (usuários, exercícios e acompanhamentos) inseridos com sucesso."  # noqa: E501
             )
     except Exception as e:
         print(f"Erro ao inserir dados de base: {e}")
@@ -213,7 +215,7 @@ def popular_treinos(num_treinos=500):
             response = requests.post(f"{API_URL}/treinos/", json=payload)
             response.raise_for_status()
             print(
-                f"Treino {i+1}/{num_treinos} para o aluno ID {id_usuario_aluno} registrado com sucesso."
+                f"Treino {i+1}/{num_treinos} para o aluno ID {id_usuario_aluno} registrado com sucesso."  # noqa: E501
             )
         except requests.exceptions.RequestException as e:
             print(f"Erro ao registrar treino {i+1}: {e}")
@@ -226,7 +228,5 @@ if __name__ == "__main__":
     try:
         criar_dados_base()
         popular_treinos(num_treinos=500)
-    except:
-        print(
-            "Processo de seeding interrompido devido a um erro na criação dos dados de base."
-        )
+    except Exception as e:
+        print(f"Processo de seeding interrompido devido a um erro: {e}")
