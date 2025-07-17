@@ -4,6 +4,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from . import models
 from .database import engine
@@ -17,8 +19,23 @@ app = FastAPI(
 )
 
 # 3. Cria as tabelas no banco de dados (se não existirem)
-models.Base.metadata.create_all(bind=engine)
+#models.Base.metadata.create_all(bind=engine)
 
+# --- 2. ADICIONE A CONFIGURAÇÃO DO CORS AQUI ---
+# Define de quais origens o frontend pode fazer requisições
+origins = [
+    "http://localhost:5173", # Endereço do nosso app Vue.js
+    "http://localhost",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Permite todos os métodos (GET, POST, etc)
+    allow_headers=["*"], # Permite todos os cabeçalhos
+)
+# -----------------------------------------------
 
 # 4. Registra o manipulador de exceção na 'app' que já existe
 @app.exception_handler(ProgrammingError)

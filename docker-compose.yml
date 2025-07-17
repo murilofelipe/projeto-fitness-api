@@ -37,5 +37,18 @@ services:
       - db
     restart: unless-stopped
 
+  frontend:
+    container_name: fitness_frontend
+    build:
+      context: ./frontend
+    command: npm run dev -- --host # Adiciona a flag --host para ser acessível
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mapeia o código local para o contêiner para que o hot-reload funcione
+      - ./frontend:/app
+    depends_on:
+      - backend
+    restart: unless-stopped
 volumes:
   postgres_data:
