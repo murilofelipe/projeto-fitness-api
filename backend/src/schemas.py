@@ -1,4 +1,5 @@
 from datetime import date
+from datetime import date as DateType
 from typing import List
 
 from pydantic import BaseModel
@@ -48,10 +49,29 @@ class Treino(BaseModel):
         from_attributes = True
 
 
-# --- Schema de Resposta para o endpoint de criação (Já existente) ---
+# --- Schema de Resposta para o endpoint de criação ---
 class TreinoResponse(BaseModel):
     message: str
     id_treino: int
 
     class Config:
         orm_mode = True
+
+
+class PerformanceData(BaseModel):
+    data_treino: DateType
+    nome_exercicio: str
+    grupo_muscular: str
+    total_series: int
+    total_repeticoes: int
+    maior_carga_kg: float
+    volume_total_carga: float
+
+    class Config:
+        from_attributes = True
+
+
+class AnalyticsResponse(BaseModel):
+    id_aluno: int
+    nome_aluno: str
+    performance: List[PerformanceData]
