@@ -1,23 +1,33 @@
-# /backend/scripts/etl_pipeline.py
-
 import os
 import sys
+from datetime import date
 
 import pandas as pd
-from sqlalchemy import create_engine, text, types
+from sqlalchemy import create_engine, text
 
 # Garante que o script encontre o pacote 'src'
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def extract(engine) -> pd.DataFrame | None:
-    """Extrai dados do banco OLTP e retorna um DataFrame."""
-    print("Iniciando a etapa de Extração...")
+    """
+    Extrai dados do banco OLTP, unindo tabelas para criar uma base única com todos os status. # noqa: E501
+    """
+    print("Iniciando a etapa de Extração (todos os status)...")
     query = """
     SELECT
-        sr.id_treino, tr.data_treino, u.id_usuario, u.nome AS nome_usuario,
-        u.email AS email_usuario, ex.id_exercicio, ex.nome_exercicio,
-        ex.grupo_muscular, sr.numero_serie, sr.repeticoes, sr.carga_kg
+        tr.id_treino,
+        tr.data_treino,
+        tr.status,
+        u.id_usuario,
+        u.nome AS nome_usuario,
+        u.email AS email_usuario,
+        ex.id_exercicio,
+        ex.nome_exercicio,
+        ex.grupo_muscular,
+        sr.numero_serie,
+        sr.repeticoes,
+        sr.carga_kg
     FROM series_realizadas sr
     JOIN treinos_realizados tr ON sr.id_treino = tr.id_treino
     JOIN usuarios u ON tr.id_usuario = u.id_usuario
@@ -34,20 +44,33 @@ def extract(engine) -> pd.DataFrame | None:
 
 
 def transform(df: pd.DataFrame):
-    """Transforma o DataFrame extraído, criando as dimensões e a tabela fato."""
+    """
+    Transforma o DataFrame, aplicando a regra de negócio para status de treinos
+    e criando as dimensões e a tabela fato.
+    """
     if df is None or df.empty:
+        print("DataFrame de entrada vazio. A transformação não pode continuar.")
         return None
     print("Iniciando a etapa de Transformação...")
 
-    df["data_treino"] = pd.to_datetime(df["data_treino"])
+    # --- APLICAÇÃO DA REGRA DE NEGÓCIO DE STATUS ---
+    hoje = pd.to_datetime(date.today()).date()
+    df["data_treino"] = pd.to_datetime(df["data_treino"]).dt.date
+
+    condicao = (df["data_treino"] < hoje) & (df["status"] == "planejado")
+    df.loc[condicao, "status"] = "nao_executado"
+    print(
+        f"{condicao.sum()} treinos planejados no passado foram atualizados para 'nao_executado'."  # noqa: E501
+    )
+    # --------------------------------------------------
 
     dim_tempo = (
         df[["data_treino"]].drop_duplicates().rename(columns={"data_treino": "id_data"})
     )
-    dim_tempo["ano"] = dim_tempo["id_data"].dt.year
-    dim_tempo["mes"] = dim_tempo["id_data"].dt.month
-    dim_tempo["dia"] = dim_tempo["id_data"].dt.day
-    dim_tempo["dia_da_semana"] = dim_tempo["id_data"].dt.day_name()
+    dim_tempo["ano"] = pd.to_datetime(dim_tempo["id_data"]).dt.year
+    dim_tempo["mes"] = pd.to_datetime(dim_tempo["id_data"]).dt.month
+    dim_tempo["dia"] = pd.to_datetime(dim_tempo["id_data"]).dt.day
+    dim_tempo["dia_da_semana"] = pd.to_datetime(dim_tempo["id_data"]).dt.day_name()
 
     dim_aluno = (
         df[["id_usuario", "nome_usuario", "email_usuario"]]
@@ -63,6 +86,7 @@ def transform(df: pd.DataFrame):
     dim_exercicio = df[
         ["id_exercicio", "nome_exercicio", "grupo_muscular"]
     ].drop_duplicates()
+    dim_treino = df[["id_treino", "status"]].drop_duplicates()
 
     df["volume_total_carga"] = df["repeticoes"] * df["carga_kg"]
     fct_treinos = (
@@ -82,6 +106,7 @@ def transform(df: pd.DataFrame):
         "dim_tempo": dim_tempo,
         "dim_aluno": dim_aluno,
         "dim_exercicio": dim_exercicio,
+        "dim_treino": dim_treino,
         "fct_treinos": fct_treinos,
     }
 
@@ -91,51 +116,52 @@ def load(dataframes: dict, engine):
     if dataframes is None:
         return
     print("Iniciando a carga de dados no Data Warehouse...")
-
-    # Define os tipos de dados para o SQLAlchemy, resolvendo o problema do SQLite
-    dtype_map = {
-        "id_data": types.Date,
-        "maior_carga_kg": types.DECIMAL(6, 2),
-        "volume_total_carga": types.DECIMAL(10, 2),
-    }
-    # A ordem importa para respeitar as chaves estrangeiras
-    tabelas_para_carregar = ["dim_tempo", "dim_aluno", "dim_exercicio", "fct_treinos"]
-
-    for tabela in tabelas_para_carregar:
-        df = dataframes[tabela]
-        print(f"Carregando dados na tabela DWH: '{tabela}'...")
-        try:
-            # Usamos if_exists='append' pois a limpeza é feita antes
-            df.to_sql(tabela, engine, if_exists="append", index=False, dtype=dtype_map)
-            print(f"Carga de dados na tabela '{tabela}' concluída com sucesso.")
-        except Exception as e:
-            print(f"Erro ao carregar dados na tabela '{tabela}': {e}")
-            raise
+    try:
+        dataframes["dim_tempo"].to_sql(
+            "dim_tempo", engine, if_exists="append", index=False
+        )
+        dataframes["dim_aluno"].to_sql(
+            "dim_aluno", engine, if_exists="append", index=False
+        )
+        dataframes["dim_exercicio"].to_sql(
+            "dim_exercicio", engine, if_exists="append", index=False
+        )
+        dataframes["dim_treino"].to_sql(
+            "dim_treino", engine, if_exists="append", index=False
+        )
+        dataframes["fct_treinos"].to_sql(
+            "fct_treinos", engine, if_exists="append", index=False
+        )
+        print("Carga de dados no DWH concluída com sucesso.")
+    except Exception as e:
+        print(f"Erro ao carregar dados no DWH: {e}")
+        raise
 
 
 def truncate_dwh_tables(engine):
     """Limpa as tabelas do DWH na ordem correta para evitar erros de FK."""
     print("Iniciando limpeza das tabelas do Data Warehouse...")
+    tables_to_truncate = [
+        "fct_treinos",
+        "dim_treino",
+        "dim_tempo",
+        "dim_aluno",
+        "dim_exercicio",
+    ]
     try:
         with engine.connect() as connection:
             transaction = connection.begin()
-            connection.execute(
-                text("TRUNCATE TABLE fct_treinos RESTART IDENTITY CASCADE;")
-            )
-            connection.execute(
-                text("TRUNCATE TABLE dim_tempo RESTART IDENTITY CASCADE;")
-            )
-            connection.execute(
-                text("TRUNCATE TABLE dim_aluno RESTART IDENTITY CASCADE;")
-            )
-            connection.execute(
-                text("TRUNCATE TABLE dim_exercicio RESTART IDENTITY CASCADE;")
-            )
+            for table in tables_to_truncate:
+                print(f"Limpando tabela: {table}...")
+                connection.execute(
+                    text(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE;")
+                )
             transaction.commit()
             print("Tabelas do DWH limpas com sucesso.")
     except Exception as e:
-        # O TRUNCATE não funciona no SQLite, então ignoramos o erro no ambiente de teste
-        print(f"Aviso ao limpar tabelas (esperado em SQLite): {e}")
+        print(
+            f"Aviso ao limpar tabelas (esperado em SQLite, onde TRUNCATE não é padrão): {e}"  # noqa: E501
+        )
 
 
 if __name__ == "__main__":
@@ -144,10 +170,12 @@ if __name__ == "__main__":
         print("Erro: A variável de ambiente DATABASE_URL não está configurada.")
     else:
         engine = create_engine(db_url)
+
         df_extraido = extract(engine=engine)
 
         if df_extraido is not None and not df_extraido.empty:
             dataframes_processados = transform(df_extraido)
-            truncate_dwh_tables(engine)
-            load(dataframes_processados, engine)
-            print("\nProcesso de ETL concluído com sucesso!")
+            if dataframes_processados:
+                truncate_dwh_tables(engine)
+                load(dataframes_processados, engine)
+                print("\nProcesso de ETL concluído com sucesso!")

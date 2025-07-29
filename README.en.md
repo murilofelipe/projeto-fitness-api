@@ -2,26 +2,40 @@
 
 # Data Engineering Platform for Performance Analysis and Retention in the Fitness Sector
 
-This project, developed as an Applied Project for a Data Engineering post-graduate course, consists of creating a complete platform for monitoring gym workouts. The solution involves a backend API, an ETL data pipeline, a Data Warehouse for analysis, and an automated test suite, all orchestrated in a containerized environment with Docker.
+This project, developed as an Applied Project for a Data Engineering post-graduate course, consists of creating a complete platform for monitoring gym workouts. The solution involves a backend API, an ETL data pipeline, a Data Warehouse for analysis, an automated test suite, and an interactive dashboard, all orchestrated in a containerized environment with Docker.
 
 ## 🎯 Table of Contents
-1.  [Technologies Used](#-technologies-used)
-2.  [Project Structure](#-project-structure)
-3.  [Local Environment Setup](#-local-environment-setup)
-4.  [Main Commands (Makefile)](#️-main-commands-makefile)
-5.  [Code Quality and Testing](#-code-quality-and-testing)
-6.  [Accessing the Database](#-accessing-the-database)
-7.  [Next Steps](#-next-steps)
+1.  [Key Features](#-key-features)
+2.  [Technologies Used](#-technologies-used)
+3.  [Project Structure](#-project-structure)
+4.  [Local Environment Setup](#-local-environment-setup)
+5.  [Main Commands (Makefile)](#️-main-commands-makefile)
+6.  [Code Quality and Testing](#-code-quality-and-testing)
+7.  [Accessing the Services](#-accessing-the-services)
+8.  [Next Steps](#-next-steps)
 
-## ✨ Technologies Used
+## ✨ Key Features
+
+* **Robust API:** Backend developed in Python with FastAPI, serving both operational (from OLTP) and analytical (from OLAP/DWH) data.
+* **ETL Pipeline:** An Extract, Transform, Load process with Pandas that moves and models data from an OLTP database to a Star Schema Data Warehouse (DWH).
+* **Containerized Environment:** Full-stack application (Backend, Frontend, Database) fully managed with Docker and Docker Compose for easy setup.
+* **Guaranteed Code Quality:** Automated test suite with `pytest`, type checking with `mypy`, and code standardization with `flake8`, `black`, and `isort`.
+* **Interactive Dashboard:** Frontend developed in Vue.js 3 with TypeScript, featuring dynamic data visualizations, such as:
+    * Workout frequency (weekly, monthly, and yearly).
+    * Performance evolution (total volume and max load).
+    * Workout calendar with status (planned, executed, not executed).
+    * Dynamic filtering by student and by exercise.
+
+## 🛠️ Technologies Used
 
 - **Backend:** Python, FastAPI
-- **Database:** PostgreSQL (for both OLTP and OLAP)
-- **Data Pipeline:** Python with Pandas
-- **Containerization:** Docker and Docker Compose
-- **Testing:** Pytest, pytest-cov
+- **Database:** PostgreSQL (OLTP & OLAP)
+- **ETL:** Pandas
+- **Containerization:** Docker, Docker Compose
+- **Frontend:** Vue.js 3, TypeScript, Vite, Pinia
+- **Charts:** Chart.js
+- **Testing:** Pytest, Vitest
 - **Code Quality:** Black, isort, Flake8, Mypy
-- **Frontend (Planned):** Vue.js
 
 ## 📂 Project Structure
 
@@ -31,14 +45,7 @@ The project is organized with the following directory structure in its root:
 /project-fitness-api/
 |
 |-- /backend/
-|   |-- /src/
-|   |-- /scripts/
-|   |-- /tests/
-|   |-- .flake8
-|   |-- Dockerfile
-|   |-- pyproject.toml
-|   |-- requirements.txt
-|
+|-- /frontend/
 |-- .gitignore
 |-- docker-compose.yml
 |-- Makefile
@@ -110,21 +117,25 @@ The `Makefile` serves as the project's control panel. Use `make help` to see all
 | `make test:cov-html` | Runs tests and generates an HTML coverage report. |
 | `make test:all` | **(Full Cycle)** Runs all quality checks in sequence. |
 
-### API Documentation
-With the environment running, the interactive API documentation (Swagger UI) is available at:
-- **[http://localhost:8000/docs](http://localhost:8000/docs)**
+## 🖥️ Accessing the Services
 
-## 🗄️ Accessing the Database
+* **Frontend (Dashboard):**
+    * [http://localhost:5173](http://localhost:5173)
 
-You can connect to the PostgreSQL database using your preferred client (DBeaver, DataGrip, etc.) with the following credentials:
--   **Host:** `localhost`
--   **Port:** `5432`
--   **Database:** `fitness_db`
--   **User:** `myuser`
--   **Password:** `mypassword`
+* **Backend (API Documentation):**
+    * [http://localhost:8000/docs](http://localhost:8000/docs)
+
+* **Database (via DB client):**
+    * **Host:** `localhost`
+    * **Port:** `5432`
+    * **Database:** `fitness_db`
+    * **User:** `myuser`
+    * **Password:** `mypassword`
 
 ## 🔮 Next Steps
 
--   **Sprint 1:** Completed ✅
--   **Sprint 2:** Completed ✅
--   **Sprint 3 (Current):** Develop the Vue.js dashboard for data visualization and prepare the final project presentation.
+With the MVP completed, future evolutions for the project could include:
+-   **Professional ETL Orchestration:** Replace the manual ETL script execution with an orchestrator like **Apache Airflow**.
+-   **End-to-End (E2E) Testing:** Add a test suite with **Cypress** or **Playwright** to validate user flows in the frontend interface.
+-   **Production Optimization:** Implement a multi-stage `Dockerfile` to create a smaller and more secure final production image.
+-   **Security:** Implement a full authentication and authorization system (e.g., with JWT) to protect user data.

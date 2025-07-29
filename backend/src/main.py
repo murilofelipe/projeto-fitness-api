@@ -2,12 +2,13 @@
 
 # 1. Imports
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-from . import models
-from .database import engine
-from .routers import analytics_router, treinos_router
+# from . import models
+# from .database import engine
+from .routers import alunos_router, analytics_router, calendario_router, treinos_router
 
 # 2. Cria a instância da aplicação
 app = FastAPI(
@@ -17,7 +18,23 @@ app = FastAPI(
 )
 
 # 3. Cria as tabelas no banco de dados (se não existirem)
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
+
+# --- 2. ADICIONE A CONFIGURAÇÃO DO CORS AQUI ---
+# Define de quais origens o frontend pode fazer requisições
+origins = [
+    "http://localhost:5173",  # Endereço do nosso app Vue.js
+    "http://localhost",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos os métodos (GET, POST, etc)
+    allow_headers=["*"],  # Permite todos os cabeçalhos
+)
+# -----------------------------------------------
 
 
 # 4. Registra o manipulador de exceção na 'app' que já existe
@@ -41,6 +58,8 @@ async def database_exception_handler(request: Request, exc: Exception):
 # 5. Rotas
 app.include_router(treinos_router.router)
 app.include_router(analytics_router.router)
+app.include_router(alunos_router.router)
+app.include_router(calendario_router.router)
 
 
 # 6. Endpoint raiz
