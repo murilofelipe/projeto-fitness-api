@@ -14,3 +14,14 @@ __pycache__/
 # Arquivos de sistema
 .DS_Store
 Thumbs.db
+
+# Arquivos de cobertura de teste
+.coverage
+
+# Bancos de dados de teste do SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Pasta de relatórios de cobertura de teste
+htmlcov/

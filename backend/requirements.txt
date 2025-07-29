@@ -4,3 +4,14 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 psycopg2-binary
+requests
+pytest
+httpx
+pytest-asyncio
+anyio
+pytest-cov
+flake8      # <--- LINTER
+mypy        # <--- TYPE CHECKER
+black       # <--- FORMATADOR DE CÓDIGO
+isort       # <--- ORGANIZADOR DE IMPORTS
+pandas

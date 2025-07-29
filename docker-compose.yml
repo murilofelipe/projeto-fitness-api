@@ -1,6 +1,4 @@
-# /docker-compose.yml
-
-version: '3.8'
+# /docker-compose.yml (Versão Simplificada e Corrigida)
 
 services:
   # Serviço do Banco de Dados PostgreSQL
@@ -20,17 +18,37 @@ services:
   # Serviço da API Backend (Python/FastAPI)
   backend:
     container_name: fitness_api
-    build: ./backend
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    build:
+      context: ./backend
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-999}
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /code/src
     volumes:
-      - ./backend:/app
+      - ./backend:/code
     ports:
       - "8000:8000"
+    # --- ESTA LINHA FORÇA A EXECUÇÃO COMO ROOT ---
+    user: "${UID:-1000}:${GID:-999}"
+    # -----------------------------------------------------------
     environment:
       - DATABASE_URL=postgresql://myuser:mypassword@db:5432/fitness_db
     depends_on:
       - db
     restart: unless-stopped
 
+  frontend:
+    container_name: fitness_frontend
+    build:
+      context: ./frontend
+    command: npm run dev -- --host # Adiciona a flag --host para ser acessível
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mapeia o código local para o contêiner para que o hot-reload funcione
+      - ./frontend:/app
+    depends_on:
+      - backend
+    restart: unless-stopped
 volumes:
   postgres_data:
