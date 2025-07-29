@@ -38,6 +38,7 @@ def test_fluxo_completo_ponta_a_ponta(client: TestClient, db_session: Session):
     payload_treino = {
         "id_usuario": 99,
         "data_treino": "2025-07-20",
+        "status": "executado",
         "exercicios": [
             {
                 "id_exercicio": 99,
@@ -62,4 +63,4 @@ def test_fluxo_completo_ponta_a_ponta(client: TestClient, db_session: Session):
     data = response_get.json()
     assert data["id_aluno"] == 99
     assert len(data["performance"]) == 1
-    assert data["performance"][0]["volume_total_carga"] == 500.0
+    assert data["performance"][0]["volume_total_diario"] == 500.0

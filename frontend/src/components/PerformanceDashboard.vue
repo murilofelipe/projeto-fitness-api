@@ -1,93 +1,114 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { getPerformanceData } from './../services/ApiService.js';
+import { Line as LineChart } from 'vue-chartjs'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale
+} from 'chart.js'
+import { computed } from 'vue';
+import { useDashboardStore } from '@/stores/dashboard';
 
-// Variáveis reativas para armazenar os dados, o estado de carregamento e os erros
-const performanceData = ref<any>(null);
-const isLoading = ref(true);
-const error = ref<string | null>(null);
+// Registra os componentes do Chart.js que vamos usar para o gráfico de LINHAS
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale);
 
-// ID do aluno para o qual queremos buscar os dados.
-const alunoId = 1;
+// Conecta o componente ao nosso "cérebro" central, o Pinia store
+const store = useDashboardStore();
 
-// A função onMounted é executada assim que o componente é "montado" na tela
-onMounted(async () => {
-    try {
-        // Chama nossa função do serviço de API
-        const response = await getPerformanceData(alunoId);
-        // Armazena os dados na nossa variável reativa
-        performanceData.value = response.data;
-    } catch (err: any) {
-        // Se der erro (ex: API fora do ar, aluno não encontrado), armazena a mensagem
-        error.value = err.response?.data?.detail || 'Ocorreu um erro ao buscar os dados.';
-    } finally {
-        // Independentemente de sucesso ou erro, marca o carregamento como concluído
-        isLoading.value = false;
-    }
+// 'computed' cria uma propriedade que se recalcula automaticamente sempre que os dados no store mudam.
+const chartData = computed(() => {
+  // Usamos o getter 'filteredPerformanceData' que já filtra os dados pela frequência selecionada
+  const dataToDisplay = store.filteredPerformanceData;
+
+  if (!dataToDisplay || dataToDisplay.length === 0) {
+    return { labels: [], datasets: [] };
+  }
+
+  // Ordena os dados por data para que a linha do tempo seja exibida corretamente
+  const sortedData = [...dataToDisplay].sort((a: any, b: any) => new Date(a.data_treino).getTime() - new Date(b.data_treino).getTime());
+
+  const labels = sortedData.map((item: any) => `${item.data_treino} (${item.nome_exercicio})`);
+  const volumeData = sortedData.map((item: any) => item.volume_total_carga);
+  const maxCargaData = sortedData.map((item: any) => item.maior_carga_kg);
+
+  return {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Volume Total de Carga (kg)',
+        backgroundColor: '#42b983', // Verde Vue
+        borderColor: '#42b983',
+        data: volumeData,
+        tension: 0.1,
+        yAxisID: 'yVolume' // Associa este dataset ao eixo Y da esquerda
+      },
+      {
+        label: 'Maior Carga (kg)',
+        backgroundColor: '#3498db', // Um azul para diferenciar
+        borderColor: '#3498db',
+        data: maxCargaData,
+        tension: 0.1,
+        yAxisID: 'yCarga' // Associa este dataset ao eixo Y da direita
+      }
+    ]
+  };
 });
+
+// Opções de configuração aprimoradas para o gráfico com dois eixos Y
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top' as const,
+      labels: {
+        color: '#e0e0e0'
+      }
+    },
+    title: {
+      display: true,
+      text: 'Evolução da Performance ao Longo do Tempo',
+      color: '#e0e0e0',
+      font: {
+        size: 16
+      }
+    }
+  },
+  scales: {
+    // Eixo Y da esquerda para o Volume Total
+    yVolume: {
+      type: 'linear' as const,
+      display: true,
+      position: 'left' as const,
+      beginAtZero: true,
+      ticks: { color: '#42b983' }, // Cor verde para o eixo
+      grid: { color: '#444' }
+    },
+    // Eixo Y da direita para a Maior Carga
+    yCarga: {
+      type: 'linear' as const,
+      display: true,
+      position: 'right' as const,
+      beginAtZero: true,
+      ticks: { color: '#3498db' }, // Cor azul para o eixo
+      grid: {
+        drawOnChartArea: false, // Evita que as linhas de grade se sobreponham
+      },
+    },
+    x: {
+      ticks: { color: '#e0e0e0' },
+      grid: { color: '#444' }
+    }
+  }
+};
 </script>
 
 <template>
-    <div class="dashboard">
-        <h1>Dashboard de Performance</h1>
-
-        <div v-if="isLoading">
-            <p>Carregando dados...</p>
-        </div>
-
-        <div v-else-if="error">
-            <p class="error">Erro: {{ error }}</p>
-        </div>
-
-        <div v-else-if="performanceData">
-            <h2>Performance de: {{ performanceData.nome_aluno }} (ID: {{ performanceData.id_aluno }})</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Exercício</th>
-                        <th>Grupo Muscular</th>
-                        <th>Séries</th>
-                        <th>Repetições</th>
-                        <th>Maior Carga (kg)</th>
-                        <th>Volume Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="item in performanceData.performance" :key="item.data_treino + item.nome_exercicio">
-                        <td>{{ item.data_treino }}</td>
-                        <td>{{ item.nome_exercicio }}</td>
-                        <td>{{ item.grupo_muscular }}</td>
-                        <td>{{ item.total_series }}</td>
-                        <td>{{ item.total_repeticoes }}</td>
-                        <td>{{ item.maior_carga_kg }}</td>
-                        <td>{{ item.volume_total_carga }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+  <div style="height: 400px; position: relative;">
+    <LineChart :data="chartData" :options="chartOptions" />
+  </div>
 </template>
-
-<style scoped>
-.dashboard {
-    font-family: sans-serif;
-    padding: 20px;
-}
-.error {
-    color: red;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-th {
-    background-color: #f2f2f2;
-}
-</style>

@@ -98,7 +98,9 @@ test-all: ## [CICLO COMPLETO] Roda linter, type checker e os testes. O ideal ant
 	make test
 	
 # --- Comandos de Limpeza ---
-
+docker-prune: ## [SISTEMA] Remove APENAS as imagens pendentes (<none>) do Docker.
+	docker image prune --filter "dangling=true" -f
+	
 clean: ## ATENÇÃO: Para tudo, remove contêineres, VOLUMES (apaga os dados) e imagens.
 	@echo "🧹 Limpando o contêineres, VOLUMES (apaga os dados) e imagens."
 	docker compose down -v --rmi all --remove-orphans

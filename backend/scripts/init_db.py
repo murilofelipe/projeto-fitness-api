@@ -1,31 +1,29 @@
 # /backend/scripts/init_db.py
 
 import os
+import sys
 
-from sqlalchemy import create_engine
+# IMPORTANTE: Importa o módulo de modelos para que o SQLAlchemy os "conheça"
+from src import models  # noqa: F401
 
-from src.database import Base
+# Importa o Base e o engine do nosso módulo de banco de dados
+from src.database import Base, engine
 
-# Pega a URL do banco da variável de ambiente (que aponta para o host 'db' dentro do Docker) # noqa: E501
-# ou usa 'localhost' como padrão se a variável não existir (para rodar o script fora do contêiner) # noqa: E501
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://myuser:mypassword@localhost:5432/fitness_db"
-)
+# Adiciona a pasta 'backend' ao path do Python para que possamos importar de 'src'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def create_database_tables():
-    # Usamos a URL obtida para criar o engine de conexão
-    engine = create_engine(DATABASE_URL)
-
-    # Imprime uma mensagem útil para sabermos onde está tentando conectar
-    print(f"Tentando criar tabelas no banco de dados em: {engine.url.host}")
-
+    """
+    Cria todas as tabelas no banco de dados que herdam da nossa Base declarativa.
+    """
+    print("Iniciando a criação de todas as tabelas no banco de dados...")
     try:
         # O comando para criar todas as tabelas
         Base.metadata.create_all(bind=engine)
         print("Tabelas criadas com sucesso!")
     except Exception as e:
-        print(f"Ocorreu um erro ao conectar ou criar as tabelas: {e}")
+        print(f"Ocorreu um erro ao criar as tabelas: {e}")
 
 
 if __name__ == "__main__":
