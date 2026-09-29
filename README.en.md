@@ -44,6 +44,7 @@ The project is organized with the following directory structure in its root:
 ```
 /project-fitness-api/
 |
+|-- /.github/ (quality CI)
 |-- /backend/
 |-- /frontend/
 |-- .gitignore
@@ -110,12 +111,14 @@ The `Makefile` serves as the project's control panel. Use `make help` to see all
 
 | Command | Description |
 | :--- | :--- |
+| `make format-check` | Checks formatting without changing files. |
 | `make format` | **(Corrective)** Automatically formats all code with `isort` and `black`. |
 | `make lint` | **(Preventive)** Checks for errors and style issues with `flake8`. |
 | `make typecheck` | **(Preventive)** Checks for type consistency with `mypy`. |
 | `make test` | **(Validation)** Runs the automated test suite with `pytest`. |
-| `make test:cov-html` | Runs tests and generates an HTML coverage report. |
-| `make test:all` | **(Full Cycle)** Runs all quality checks in sequence. |
+| `make test-cov` | Runs tests and prints coverage in the terminal. |
+| `make test-cov-html` | Runs tests and generates an HTML coverage report. |
+| `make test-all` | **(Full Cycle)** Runs all quality checks in sequence. |
 
 ## 🖥️ Accessing the Services
 

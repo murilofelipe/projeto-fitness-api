@@ -42,8 +42,9 @@ Este projeto, desenvolvido como Projeto Aplicado para o curso de Engenharia de D
 O projeto está organizado com a seguinte estrutura de pastas na sua raiz:
 
 ```
-/projeto-fitness/
+/projeto-fitness-api/
 |
+|-- /.github/ (CI de qualidade)
 |-- /backend/
 |-- /frontend/
 |-- .gitignore
@@ -65,8 +66,8 @@ Siga estes passos para configurar e executar o projeto em uma nova máquina.
 
 1.  **Clone o repositório:**
     ```bash
-    git clone git@github.com:murilofelipe/projeto-fitness.git
-    cd projeto-fitness
+    git clone git@github.com:murilofelipe/projeto-fitness-api.git
+    cd projeto-fitness-api
     ```
 
 2.  **Suba os contêineres:**
@@ -111,12 +112,14 @@ A qualidade do código é garantida por uma suíte de formatação, linting, che
 
 | Comando | Descrição |
 | :--- | :--- |
+| `make format-check` | Verifica a formatação sem alterar arquivos. |
 | `make format` | Formata automaticamente todo o código com `isort` e `black`. |
 | `make lint` | Procura por erros e problemas de estilo com `flake8`. |
 | `make typecheck` | Verifica a consistência dos tipos com `mypy`. |
 | `make test` | Roda a suíte de testes automatizados com `pytest`. |
-| `make test:cov-html` | Roda os testes e gera o relatório de cobertura em HTML. |
-| `make test:all` | **(Recomendado)** Roda todas as verificações de qualidade em sequência. |
+| `make test-cov` | Roda os testes e exibe a cobertura no terminal. |
+| `make test-cov-html` | Roda os testes e gera o relatório de cobertura em HTML. |
+| `make test-all` | **(Recomendado)** Roda todas as verificações de qualidade em sequência. |
 
 ## 🖥️ Acessando os Serviços
 
